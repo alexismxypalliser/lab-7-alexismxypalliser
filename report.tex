@@ -1,0 +1,323 @@
+\documentclass{article}
+
+\usepackage{fancyhdr}
+\usepackage{extramarks}
+\usepackage{tikz}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true, urlcolor=blue}
+
+\usetikzlibrary{automata,positioning}
+
+%
+% Basic Document Settings
+%
+
+\topmargin=-0.45in
+\evensidemargin=0in
+\oddsidemargin=0in
+\textwidth=6.5in
+\textheight=9.0in
+\headsep=0.25in
+
+\linespread{1.1}
+
+\pagestyle{fancy}
+\lhead{\hmwkAuthorName}
+\chead{\hmwkClass\ (\hmwkClassInstructor): \hmwkTitle}
+\rhead{\firstxmark}
+\lfoot{\lastxmark}
+\cfoot{\thepage}
+
+\renewcommand\headrulewidth{0.4pt}
+\renewcommand\footrulewidth{0.4pt}
+
+\setlength\parindent{0pt}
+
+%
+%Title Page Modifications
+%
+
+\newcommand{\hmwkTitle}{Lab 7}
+\newcommand{\hmwkDueDate}{Tuesday, October 9, 2018}
+\newcommand{\hmwkClass}{AerE 361}
+\newcommand{\hmwkClassInstructor}{Dr. Nataliya Altukhova}
+\newcommand{\hmwkAuthorName}{\textbf{Alexis Palliser}}
+
+%
+% Title Page
+%
+
+\title{
+    \vspace{2in}
+    \textmd{\textbf{\hmwkClass:\ \hmwkTitle}}\\
+    \normalsize\vspace{0.1in}\small{Due\ on\ \hmwkDueDate\ at 11:00am}\\
+    \vspace{0.1in}\large{\textit{\hmwkClassInstructor}}
+    \vspace{3in}
+}
+
+\author{\hmwkAuthorName}
+\date{}
+
+\renewcommand{\part}[1]{\textbf{\large Part \Alph{partCounter}}\stepcounter{partCounter}\\}
+
+\setlength{\parindent}{4em}
+\begin{document}
+\maketitle
+\pagebreak
+
+\section{Problem}
+Your project will be to code the 3 methods of numerical integration in the following list. They
+should take any univariate as well as the bounds of the definite integral with all numbers
+being of type \textbf{double}. The methods to code are:
+\begin{itemize}
+\item Midpoint Rule (AKA: Rectangle Rule)\\
+\begin{equation}
+    \int\limits_a^b f(x)dx\approx (b-a)f(\frac{a+b}{2})
+\end{equation}
+\item Simpson's Rule (\( \frac{1}{3} \) and \( \frac{3}{8} \) variants)
+\begin{equation}
+        \int\limits_a^b f(x)dx\approx\frac{(b-a)}{6}\bigg[f(a)+4f(\frac{a+b}{2})+f(b)\bigg]
+\end{equation}
+\begin{equation}
+    \int\limits_a^b f(x)dx\approx\frac{(b-a)}{8}\bigg[f(a)+3f(\frac{2a+b}{3})+3f(\frac{a+2b}{3}+f(b)\bigg]
+\end{equation}
+\item Gauss Quadrature (Up to 10th order)
+\begin{equation}
+    \int\limits_a^b f(x)dx\approx m\sum_{i=1}^{n} \omega_i f(c+mt_i)
+\end{equation}
+Where:
+\begin{equation}
+    x=c+mt \hspace{1cm} c=\frac{1}{2}(b+a) \hspace{1cm} m=\frac{1}{2}(b-a) \hspace{1cm}
+\end{equation}
+The values of \( t \) and \( \omega \) can be found at \url{http://www.public.iastate.edu/~akmitra/aero361/design_web/quad.html}, and \( n\) is the order.
+\end{itemize}
+
+\section{Design}
+The overall design of each program is relatively simple.
+In each individual method I have a short statement that defines the function.
+Then I ask the user for the boundary conditions and the number of intervals or points. 
+
+\section{Complexity}
+There is some complexity involved with Simpson's 1/3 rule because of the subintervals needing to be even.
+Therefore, trying to figure out how to only accept even numbers, and to write a condition to fix the problem was a challenge.
+It took me a decent amount of time to find the efficient \textbf{`` \% 2 == 1''} command.
+I also had a difficult time integrating malloc into my code.
+The Gauss Legendre Quadrature method was extremely hard for me to program.
+This method is simple to solve by hand, however not as easy via program.
+I knew how to calculate the final integrand and display the roots and weights for the respective points given.
+What I did not know how to code was the conditions for when the boundaries are not between -1 and 1.
+I know the formulas to change the limits of integration, but applying this to the rest of the solution was difficult.
+\\
+\\ As far as computing power goes, these are very simple programs for many computers to run.
+
+\section{The Stack}
+How \textbf{int} and \textbf{double} have been declared, they are put in a special memory area called \textit{stack}.\\
+\\ \textit{Text segment} contains machine code of the compiled C program.
+The \textbf{global, static, and const} variables used within a program are stored in the data segment. Depending on whether these variables are initialized, the data segment has two parts: \textbf{initialized
+data segment}, and \textbf{uninitialized data segment (bss)}. Each of these segments can be further classified into \textbf{read-only} or \textbf{read-write}.\\
+\\ The stack is a special region of your computer’s memory that stores temporary variables created by each function (including the \textbf{main()} function). 
+The stack is a ``LIFO'' (last in, first out) data structure managed by the CPU. 
+Every time we declare a new variable in a function, it is "pushed" onto the stack. 
+Then every time a function exits, all of the variables pushed onto the stack by that function, are freed (deleted). 
+Once a stack variable is freed, that region of memory becomes available for other stack variables in other functions. The advantage of using the stack to store variables, is that memory is managed for you. 
+A key to understanding the stack is the notion that when a function exits, all of its variables are popped off of the stack (and hence lost forever). \\
+\\ A common bug in C programming is attempting to access a variable that was created on the stack inside some function, from a place in your program outside of that function (i.e. after that function has exited).\par
+\begin{enumerate}
+    \item The stack grows and shrinks as functions push and pop local variables
+    \item There is no need to manage the memory yourself, variables are allocated and freed automatically
+    \item The stack has size limits
+    \item Stack variables only exist while the function that created them, is running
+\end{enumerate}
+
+\subsection{When to Use Stack}
+Stack should only be used when dealing with relatively small variables that are only needed while the function is alive.
+
+\section{The Heap}
+The heap is a region of your computer’s memory that is \textbf{NOT} managed automatically for you, and is not (as tightly) managed by the CPU.
+It is much larger that the stack. 
+To allocate memory on the heap for a variable, you must use \textbf{malloc()} or \textbf{calloc()}.
+Once you have allocated memory on the heap, you are responsible for deallocating that memory using \textbf{free()} once you don't need it any more.\\
+\\ A memory leak is a programming error (not reported by the compiler) in which memory is set aside on the heap, and if not freed, is not available to other processes.
+The command \textbf{valgrind} can be used to help find memory leaks.
+Heap does not have size restrictions, and is therefore slightly slower to be read from and written to because pointers are required to access memory on the heap.\\
+\\ Variables on the heap are accessible to any function anywhere in your program with a pointer to that variable. This allows you to work with the same memory from multiple functions.
+
+\subsection{When to Use Heap}
+\begin{itemize}
+    \item Need to allocate a large block of memory (e.g. a large array) and need to use this for a long time or across multiple functions
+    \item Need variables like arrays that can change size dynamically (e.g. arrays can grow and shrink)
+    \begin{itemize}
+        \item Use dynamic memory allocation functions like \textbf{malloc(), calloc(), realloc(), and free()} to manage this memory manually
+    \end{itemize}
+\end{itemize}
+
+\section{Introduction to Valgrind}
+\textbf{Memcheck} only detects the use of illegal addresses and the use of undefined values.
+\\ The ``-g'' flag is needed to compile with Valgrind. The input is \textbf{gcc test.c -g} and the output is ``a.out''
+\\ \textbf{valgrind --leak-check=yes ./a.out} runs the program with Valgrind.
+\\ \textbf{valgrind --leak-check=yes ./a.out 2\textgreater valgrind.out} runs and stores the output in a file instead of displaying the output through the terminal.
+\begin{flushleft}
+    \textbf{==5893== Invalid write of size 4 \\ ==5893== \hspace{15pt} at 0x40054B: f (test.c:6) \\ ==5893== \hspace{15pt} by 0x40055B: main (test.c:11) \\ ==5893== \hspace{3pt} Address 0x51f9068 is 0 bytes after a block of size 40 alloc'd \\ ==5893== \hspace{15pt} at 0x4C29BE3: malloc (vg\_replace\_malloc.c:299) \\ ==5893== \hspace{15pt} by 0x40053E: f (test.c:5) \\ ==5893== \hspace{15pt} by 0x40055B: main (test.c:11)}
+\end{flushleft}
+\begin{itemize}
+\item \textbf{5893} is the process ID
+\item \textbf{``Invalid write...''} tells you what kind of error it is. Here, the program wrote to some memory it should not have due to a heap block overrun.
+\item Below the first line is a stack trace telling you where the problem occurred. Reading them from the bottom up can help.
+\item The code addresses (e.g. \textbf{0x40054B} are usually unimportant, but occasionally crucial for tracking down weirder bugs.
+\item Some error messages have a second component which describes the memory address involved. This one shows that the written memory is just past the end of a block allocated with \textbf{malloc()} on line 5 of test.c.
+\end{itemize}
+It is important to fix errors in the order they are reported, as later errors can be caused by earlier errors. Failing to do this is a common cause of difficulty with \textbf{Memcheck}.
+\begin{flushleft}
+    \textbf{==5893== 40 bytes in 1 blocks are definitely lost in loss record 1 of 1 \\ ==5893== \hspace{15pt} at 0x4C29BE3: malloc (vg\_replace\_malloc.c:299) \\ ==5893== \hspace{15pt} by 0x40053E: f (test.c:5) \\ ==5893== \hspace{15pt} by 0x40055B: main (test.c:11)}
+\end{flushleft}
+Ignore ``vg\_replace\_malloc.c'' as it is an implementation detail. \\
+Stack trace tells you where the leaked memory was allocated. \textbf{Memcheck} cannot tell you why the memory leaked.
+\begin{itemize}
+\item ``definitely lost'': your program is leaking memory - Try to fix it!
+\item ``probably lost'': your program is leaking memory, unless you're doing funny things with pointers (such as moving them to point to the middle of a heap block).
+\end{itemize}
+
+\subsection{Illegal read / Illegal write errors}
+\begin{flushleft}
+\textbf{Invalid read of size 4\\
+\hspace{15pt} at 0x40F6BBCC: (within /usr/lib/libpng.so.2.1.0.9)\\
+\hspace{15pt} by 0x40F6B804: (within /usr/lib/libpng.so.2.1.0.9)\\
+\hspace{15pt} by 0x40B07FF4: read\_png\_image\_\_FP8QImageIO (kernel/qpngio.cpp:326)\\
+\hspace{15pt} by 0x40AC751B: QImageIO: :read() (kernel/qimage.cpp:3621)\\
+\hspace{15pt} Address 0xBFFFF0E0 is not stack'd, malloc'd or free'd}
+\end{flushleft}
+This happens when your program reads or writes memory at a place which Memcheck reckons it shouldn’t.
+In this example, the program did a 4-byte read at address 0xBFFFF0E0, somewhere within the system-supplied library libpng.so.2.1.0.9, which was called from somewhere else in the same library, called from line 326 of qpngio.cpp, and so on.\\
+\\ Memcheck tries to establish what the illegal address might relate to, since that’s often useful.
+So, if it points into a block of memory which has already been freed, you’ll be informed of this, and also where the block was free’d at.
+Likewise, if it should turn out to be just off the end of a malloc’d block, a common result of off-by-one-errors in array subscripting, you’ll be informed of this fact, and also where the block was malloc’d.\\
+\\ In this example, Memcheck can’t identify the address.
+Actually the address is on the stack, but, for some reason, this is not a valid stack address – it is below the stack pointer.\\
+\\ Note that Memcheck only tells you that your program is about to access memory at an illegal address.
+It can’t stop the access from happening.
+So, if your program makes an access which normally would result in a segmentation fault, you program will still suffer the same fate – but you will get a message from Memcheck immediately prior to this.
+In this particular example, reading junk on the stack is non-fatal, and the program stays alive.
+
+\subsection{Use of uninitialized values}
+\begin{flushleft}
+\textbf{Conditional jump or move depends on uninitialized value(s)\\
+\hspace{15pt} at 0x402DFA94: \_IO\_vfprintf (\_itoa.h:49)\\
+\hspace{15pt} by 0x402E8476: \_IO\_printf (printf.c:36)\\
+\hspace{15pt} by 0x8048472: main (tests/manuel1.c:8)\\
+\hspace{15pt} by 0x402A6E5E: \_\_libc\_start\_main (libc-start.c:129)}
+\end{flushleft}
+An uninitialized value use error is reported when your program uses a value which hasn't been initialized.
+In other words, the value is undefined.
+A complaint is only issued when your program attempts to make use of uninitialized data.
+Sources of uninitialized data tend to be from local variables in procedures which have not been initialized, or the contents of the malloc'd blocks before something is written there.
+
+\subsection{Illegal frees}
+\begin{flushleft}
+\textbf{Invalid free()}\\
+\textbf{\hspace{15} at 0x4004FFDF: free (vg\_clientmalloc.c:577)}\\
+\textbf{\hspace{15} by 0x80484C7: main (tests/doublefree.c:10)}\\
+\textbf{\hspace{15} by 0x402A6E5E: \_\_libc\_start\_main (libc-start.c:129)}\\
+\textbf{\hspace{15} by 0x80483B1: (within tests/doublefree)}\\
+\textbf{\hspace{15} Address 0x3807F7B4 is 0 bytes inside a block of size 177 free’d}\\
+\textbf{\hspace{15} at 0x4004FFDF: free (vg\_clientmalloc.c:577)}\\
+\textbf{\hspace{15} by 0x80484C7: main (tests/doublefree.c:10)}\\
+\textbf{\hspace{15} by 0x402A6E5E: \_\_libc\_start\_main (libc-start.c:129)}\\
+\textbf{\hspace{15} by 0x80483B1: (within tests/doublefree)}
+\end{flushleft}
+In this example, Memcheck keeps track of the blocks allocated by your program with malloc, so it can know exactly whether or not the argument to free is legitimate or not.
+Here, this test program has freed the same block twice.
+As with illegal read/write errors, Memcheck attempts to make sense of the address free'd.
+ If, as here, the address is one which has previously been
+freed, you will be told that – making duplicate frees of the same block easy to spot.
+
+\subsection{Passing system call parameters with inadequate read/write permissions}
+Memcheck checks all parameters to system calls.
+If a system call needs to read from a buffer provided by your program, Memcheck checks that the entire buffer is addressible and has valid data, ie, it is readable.
+If the system call needs to write to a user-supplied buffer, Memcheck checks that the buffer is addressible. 
+After the system call, Memcheck updates its administrative information to precisely reflect any changes in memory permissions caused by the system call.
+Example of a system call with an invalid parameter:
+\begin{flushleft}
+\textbf{\#include \textless stdlib.h\textgreater}\\
+\textbf{\#include \textless unistd.h\textgreater}\\
+\textbf{int main( void)}\\
+\textbf{\{}\\
+\textbf{\hspace{10} char\* arr = malloc(10);}\\
+\textbf{\hspace{10} (void) write( 1/\* stdout \*/, arr, 10 );}\\
+\textbf{\hspace{10} return 0;}\\
+\textbf{\}}\\
+\end{flushleft}
+Returns:
+\begin{flushleft}
+\textbf{Syscall param write(buf) contains uninitialised or unaddressable byte(s)}\\
+\textbf{\hspace{15} at 0x4035E072: \_\_libc\_write}\\
+\textbf{\hspace{15} by 0x402A6E5E: \_\_libc\_start\_main (libc-start.c:129)}\\
+\textbf{\hspace{15} by 0x80483B1: (within tests/badwrite)}\\
+\textbf{\hspace{15} by \<bogus frame pointer\> ???}\\
+\textbf{\hspace{15} Address 0x3807E6D0 is 0 bytes inside a block of size 10 alloc’d}\\
+\textbf{\hspace{15} at 0x4004FEE6: malloc (ut\_clientmalloc.c:539)}\\
+\textbf{\hspace{15} by 0x80484A0: main (tests/badwrite.c:6)}\\
+\textbf{\hspace{15} by 0x402A6E5E: \_\_libc\_start\_main (libc-start.c:129)}\\
+\textbf{\hspace{15} by 0x80483B1: (within tests/badwrite)}\\
+\end{flushleft}
+The reason for the complaint is because the program has tried to write the uninitialized junk from the malloc'd block to the standard output.
+
+\subsection{Overlapping source and destination blocks}
+The following C library functions copy some data from one memory block to another (or something similar): memcpy(), strcpy(), strncpy(), strcat(), strncat().
+The blocks pointed to by their src and dst pointers aren’t allowed to overlap, and Memcheck checks for this. 
+\begin{flushleft}
+\textbf{==27492== Source and destination overlap in memcpy(0xbffff294, 0xbffff280, 21) \\ ==27492== \hspace{15} at 0x40026CDC: memcpy (mc\_replace\_strmem.c:71) \\ ==27492== \hspace{15} by 0x804865A: main (overlap.c:40) \\ ==27492== \hspace{15} by 0x40246335: \_\_libc\_start\_main (../sysdeps/generic/libc-start.c:129) \\ ==27492== \hspace{15} by 0x8048470: (within /auto/homes/njn25/grind/head6/memcheck/tests/overlap) \\ ==27492== \hspace{15}}
+\end{flushleft}
+You don’t want the two blocks to overlap because one of them could get partially trashed by the copying.
+
+\section{Function Pointers}
+Pointers can reference more then arrays, one example is the \textit{function pointer}.
+A function pointer references a function with a specific signature (return and input types) and allow us to write code that uses a function that isn’t known at compile time.
+A great example of this is located in funcp.c in the lab repository. \\
+\hspace{15} In the sum\_to\_100 function, we declared an argument of type double, in the form of a pointer to a function that took a double as an input.
+There is nothing special about the name ``funcp'', as long as it follows normal naming rules, and is preceded with an asterisk and encased in parentheses.
+Note the format in general is return\_type (ptr\_name)(arg\_types)\\
+\hspace{15} By asserting in the definition of the sum\_to\_100 function that we would provide a function that takes a double and returns a double, we can use the pointer like the function (as in sum += funcp((float) i).
+To call sum we provide a function that meets these criteria (takes a double and returns a double). 
+This is incredibly powerful for use in numerical methods and technical computing.
+
+\section{Discussion}
+\textbf{Size} is a Linux command that monitors memory usage for the text and data (initialized and uninitialized).\\
+\\ \textbf{man} displays a manual of how a specific command works.
+\\ \textbf{malloc} was used to request space on the heap and return a pointer to that memory.
+\\ \textbf{calloc} is used in the format \textbf{ptr = (cast-type$*$)calloc(n, element-size);}
+In words, \textbf{calloc} requires the number of ``things'' we need to store (n) and the element size in bytes.
+Using \textbf{calloc} can make it harder to create subtle bugs relating to array size.
+The tradeoff is using \textbf{calloc} can be slower for large data structures because the memory is written to be all 0's when it is reserved.
+\textbf{malloc} just returns a pointer to reserve memory without assigning any value.
+\begin{center}
+These are roughly equivalent:
+\\ \textbf{ptr=(int$*$)malloc(100 $*$ sizeof(int));}
+\\ \textbf{ptr=(int$*$) calloc(100, sizeof(int));}
+\end{center}
+\textbf{realloc} allows a portion of heap memory to be resized.
+If the new request size is larger, memory will be added and if it is smaller, the unneeded space will be freed.\\
+\\ \textbf{double ext\_func(double)} is called a forward declaration, it tells the compiler that ``there exists some function `ext\_func' that takes a double and returns a double.''\\
+\\ The name of the C file doesn't have to match the name of the function.\\
+The name of the function prototype in main does have to match the name of the actual function.\\
+To compile with a function, use \textbf{gcc main.c ext\_func.c}\\
+In LaTeX, pt stands for printer's points. Other units include em, ex, in, pc, cm, mm, dd, cc, nd, nc, bp, or sp.\\
+
+\section{Resources Used}
+\href{https://www.overleaf.com/learn/latex/Bold,_italics_and_underlining#Bold_text}{Bold, Italics and Underlining}
+\\ \href{https://www.overleaf.com/learn/latex/Sections_and_chapters#Numbered_and_unnumbered_sections}{Sections and Chapters}
+\\ \href{https://www.overleaf.com/learn/latex/Line_breaks_and_blank_spaces}{Line Breaks and Blank Spaces}
+\\ \href{https://www.overleaf.com/learn/latex/Text_alignment}{Text Alignment}
+\\ \href{https://www.overleaf.com/learn/latex/Paragraph_formatting#Starting_a_new_paragraph}{Paragraph Formatting}
+\\ \href{https://www.overleaf.com/learn/latex/List_of_Greek_letters_and_math_symbols}{List of Greek Letters and Math Symbols}
+\\ \href{https://www.overleaf.com/learn/latex/Subscripts_and_superscripts}{Subscripts and Superscripts}
+\\ \href{https://www.overleaf.com/learn/latex/Brackets_and_Parentheses}{Brackets and Parentheses}
+\\ \href{https://www.overleaf.com/learn/latex/Hyperlinks}{Hyperlinks}
+\\ \href{https://www.overleaf.com/learn/latex/Errors/Missing_$_inserted\#Common_Causes}{Missing \$ Inserted}
+\\ \href{https://en.wikibooks.org/wiki/LaTeX/Paragraph_Formatting}{LaTeX Paragraph Formatting}
+\\ \href{https://stackoverflow.com/questions/3254054/latex-indent-from-second-line}{LaTeX: Indent from second line}
+\\ \href{https://en.wikibooks.org/wiki/LaTeX/List_Structures}{LaTeX List Structures}
+\\ \href{http://artofproblemsolving.com/wiki/index.php/LaTeX:Symbols}{LaTeX Symbols}
+\\ \href{http://valgrind.org/info/}{Valgrind}
+\\ \href{https://onlinelibrary.wiley.com/doi/pdf/10.1002/9783527618835.app5}{Converging Programs}
+\\ \textbf{Textbook:} \textit{The C Programming Language,} Chapters 4, 10, and 17
+\end{document}
